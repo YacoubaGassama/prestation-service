@@ -1,0 +1,21 @@
+{
+  "namespace": "uahb.m1gl.kafka.avro.model",
+  "type": "record",
+  "name": "CustomerExistResponseAvroModel",
+  "fields": [
+    {
+      "name": "clientId",
+      "type": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "customerExist",
+      "type": {
+        "type": "enum",
+        "name": "CustomerExist",
+        "symbols": ["EXIST", "NOTEXIST"]
+      }
+    }
+  ]
+}
