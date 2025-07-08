@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -18,8 +19,10 @@ public class Compte {
     @Column(columnDefinition = "serial")
     private long id;
     private LocalDate dateCreation;
-    private long solde;
+    private BigDecimal solde;
     private  long clientId;
+    @Column(length = 30)
+    private  String numeroCompte;
     @OneToMany(mappedBy = "comptes" ,cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     private List<Transaction> transactions;
 }

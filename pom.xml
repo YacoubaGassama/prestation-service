@@ -36,9 +36,9 @@
 	</scm>
 	<properties>
 		<avro.version>1.11.3</avro.version>
-		<modelmapper.version>3.2.1</modelmapper.version>
 		<spring-kafka.version>3.2.4</spring-kafka.version>
 		<kafka-avro-serializer.version>7.3.3</kafka-avro-serializer.version>
+		<modelmapper.version>3.2.1</modelmapper.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -65,11 +65,7 @@
 				<artifactId>commande-service</artifactId>
 				<version>${project.version}</version>
 			</dependency>
-			<dependency>
-				<groupId>uahb.m1gl</groupId>
-				<artifactId>commande-service</artifactId>
-				<version>${project.version}</version>
-			</dependency>
+
 			<dependency>
 				<groupId>uahb.m1gl</groupId>
 				<artifactId>kafka-data-model</artifactId>
@@ -102,15 +98,18 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-plugin.version}</version>
 				<configuration>
 					<annotationProcessorPaths>
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>1.18.30</version>
 						</path>
 					</annotationProcessorPaths>
 					<release>21</release>
 				</configuration>
+
 			</plugin>
 		</plugins>
 	</build>

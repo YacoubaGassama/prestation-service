@@ -1,0 +1,42 @@
+{
+  "namespace": "uahb.m1gl.kafka.avro.model",
+  "type": "record",
+  "name": "PaiementCreateRequestAvroModel",
+  "fields": [
+    {
+      "name": "clientId",
+      "type": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "demandeId",
+      "type": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "montant",
+      "type": {
+        "type": "bytes",
+        "logicalType": "decimal",
+        "precision": 10,
+        "scale": 2
+      }
+    },
+    {
+      "name": "message",
+      "type": {
+        "type": "string"
+      }
+    },
+    {
+      "name": "paiementStatut",
+      "type": {
+        "type": "enum",
+        "name": "PaiementStatut",
+        "symbols": ["EN_ATTENTE", "TERMINE", "ANNULE", "ECHEC"]
+      }
+    }
+  ]
+}
