@@ -17,7 +17,6 @@ import java.time.LocalDate;
 public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "serial")
     private long id;
     private LocalDate date;
     private  String type;

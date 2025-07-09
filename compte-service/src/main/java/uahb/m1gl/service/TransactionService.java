@@ -6,15 +6,15 @@ import uahb.m1gl.repository.TransactionRepository;
 
 @Service
 public class TransactionService implements ITransaction{
-    private final TransactionService transactionService;
+ private final TransactionRepository transactionRepository;
 
-    public TransactionService(TransactionService transactionService) {
-        this.transactionService = transactionService;
+    public TransactionService(TransactionRepository transactionRepository) {
+        this.transactionRepository = transactionRepository;
     }
 
     @Override
     public Transaction save(Transaction transaction) {
-        return transactionService.save(transaction);
+        return transactionRepository.save(transaction);
     }
 
 }

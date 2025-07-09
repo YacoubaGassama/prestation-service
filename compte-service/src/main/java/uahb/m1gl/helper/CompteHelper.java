@@ -2,22 +2,27 @@ package uahb.m1gl.helper;
 
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import uahb.m1gl.dto.CompteCreateRequest;
-import uahb.m1gl.dto.CompteCreateResponse;
-import uahb.m1gl.dto.DepotCreateRequest;
-import uahb.m1gl.dto.DepotCreateResponse;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import uahb.m1gl.dto.*;
 import uahb.m1gl.event.KafkaEvent;
 import uahb.m1gl.exception.CompteServiceException;
 import uahb.m1gl.kafka.avro.model.CustomerCreateRequestAvroModel;
 import uahb.m1gl.mapper.CompteServiceMapper;
+import uahb.m1gl.messaging.CustomerKafkaListener;
 import uahb.m1gl.messaging.KafkaService;
 import uahb.m1gl.model.Compte;
+import uahb.m1gl.model.Tracking;
 import uahb.m1gl.model.Transaction;
 import uahb.m1gl.service.ICompte;
+import uahb.m1gl.service.ITracking;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.time.LocalDate;
+import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class CompteHelper {
@@ -25,24 +30,50 @@ public class CompteHelper {
     private final ICompte iCompte;
     private final ModelMapper modelMapper;
     private final CompteServiceMapper compteServiceMapper;
+    private final ITracking iTracking;
+    private final CustomerKafkaListener customerResponseKafkaListener;
 
-    public CompteHelper(KafkaService kafkaService, ICompte iCompte, ModelMapper modelMapper, CompteServiceMapper compteServiceMapper) {
+    public CompteHelper(KafkaService kafkaService, ICompte iCompte, ModelMapper modelMapper, CompteServiceMapper compteServiceMapper, ITracking iTracking, CustomerKafkaListener customerResponseKafkaListener) {
         this.kafkaService = kafkaService;
         this.iCompte = iCompte;
         this.modelMapper = modelMapper;
         this.compteServiceMapper = compteServiceMapper;
+        this.iTracking = iTracking;
+        this.customerResponseKafkaListener = customerResponseKafkaListener;
     }
 
-    public CompteCreateResponse createCompte(CompteCreateRequest compteCreateRequest){
+    public ResponseEntity<Map<String, String>> createCompte(CompteCreateRequest compteCreateRequest){
+        customerResponseKafkaListener.initCompteCreateRequest(compteCreateRequest);
+
         if(compteCreateRequest.getMontant().compareTo(BigDecimal.valueOf(10000)) < 0){
             throw new CompteServiceException("montant initial ["+compteCreateRequest.getMontant()+"] doit être >= 10000");
         }
         CustomerCreateRequestAvroModel customerCreateRequestAvroModel =
                 compteServiceMapper.CustomerCreateRequestTocustomerCreateResponseAvroModel(compteCreateRequest
                         .getCustomerCreateRequest());
+
+        Tracking tracking = new Tracking();
+        tracking.setTrackingId(UUID.randomUUID().toString());
+        tracking.setTel(compteCreateRequest.getCustomerCreateRequest().getTel());
+        tracking.setMessage("Création du compte initiée !!!");
+        tracking.setStatut("PENDING");
+        tracking.setClientId(0);
+        tracking.setCompte(null);
+        tracking = iTracking.save(tracking);
+        customerResponseKafkaListener.setDataSaga(tracking);
         KafkaEvent<CustomerCreateRequestAvroModel> createCustumerEvent = new KafkaEvent<>(customerCreateRequestAvroModel);
         kafkaService.createCustomer(createCustumerEvent);
-        return null;
+        String trackerUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("/api/compte/tracker/{id}")
+                .buildAndExpand(tracking.getTrackingId())
+                .toUriString();
+
+        // Réponse : code 201 + header Location + JSON avec l’URL
+        URI location = URI.create(trackerUrl);
+        Map<String, String> body = Map.of("trackerUrl", trackerUrl);
+
+        return ResponseEntity.created(location).body(body);
     }
 
     public CompteCreateResponse getCompteByClientId(long clientId){
@@ -81,4 +112,12 @@ public class CompteHelper {
     }
 
 
+    public TrackingResponse trackingResponse(long trackingId) {
+        Tracking tracking = iTracking.findById(trackingId);
+        return TrackingResponse.builder()
+                .message(tracking.getMessage())
+                .statut(tracking.getStatut())
+                .clientId(tracking.getClientId())
+                .build();
+    }
 }

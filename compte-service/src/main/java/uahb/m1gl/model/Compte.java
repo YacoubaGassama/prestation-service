@@ -16,13 +16,15 @@ import java.util.List;
 public class Compte {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(columnDefinition = "serial")
     private long id;
     private LocalDate dateCreation;
     private BigDecimal solde;
     private  long clientId;
     @Column(length = 30)
     private  String numeroCompte;
-    @OneToMany(mappedBy = "comptes" ,cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
+    @OneToMany(mappedBy = "compte" ,cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     private List<Transaction> transactions;
+    @OneToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "tracking_id")
+    private Tracking tracking;
 }

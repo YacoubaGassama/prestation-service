@@ -3,11 +3,13 @@ package uahb.m1gl.controller;
 
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import uahb.m1gl.dto.CompteCreateRequest;
-import uahb.m1gl.dto.DepotCreateRequest;
+import uahb.m1gl.dto.*;
 import uahb.m1gl.helper.CompteHelper;
 import uahb.m1gl.messaging.CustomerKafkaListener;
+
+import java.util.Map;
 
 //@CrossOrigin
 @RestController
@@ -16,19 +18,16 @@ public class CompteController {
 
     private final CompteHelper compteHelper;
 
-    private final CustomerKafkaListener customerResponseKafkaListener;
     private final ModelMapper modelMapper;
 
-    public CompteController(CompteHelper compteHelper, CustomerKafkaListener customerResponseKafkaListener, ModelMapper modelMapper) {
+    public CompteController(CompteHelper compteHelper, ModelMapper modelMapper) {
         this.compteHelper = compteHelper;
-        this.customerResponseKafkaListener = customerResponseKafkaListener;
         this.modelMapper = modelMapper;
     }
 
     @PostMapping
-    public void createCompte(@RequestBody CompteCreateRequest compteCreateRequest) throws InterruptedException {
-        customerResponseKafkaListener.initCompteCreateRequest(compteCreateRequest);
-        compteHelper.createCompte(compteCreateRequest);
+    public ResponseEntity<Map<String, String>> createCompte(@RequestBody CompteCreateRequest compteCreateRequest) throws InterruptedException {
+        return compteHelper.createCompte(compteCreateRequest);
     }
 
     @PostMapping("/depot")
@@ -39,5 +38,9 @@ public class CompteController {
     @GetMapping("/{clientId}")
     public CompteCreateResponse getCompte(@PathVariable long clientId){
         return compteHelper.getCompteByClientId(clientId);
+    }
+    @GetMapping("/tracker/{id}")
+    public @ResponseBody TrackingResponse trackingResponse(@PathVariable long trackingId){
+        return compteHelper.trackingResponse(trackingId);
     }
 }
