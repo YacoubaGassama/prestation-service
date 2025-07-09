@@ -25,4 +25,7 @@ public class Compte {
     private  String numeroCompte;
     @OneToMany(mappedBy = "comptes" ,cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     private List<Transaction> transactions;
+    @OneToOne(cascade = CascadeType.MERGE)
+    @JoinColumn(name = "saga_id")
+    private Saga saga;
 }

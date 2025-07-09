@@ -8,21 +8,27 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import uahb.m1gl.KafkaConsumer;
 import uahb.m1gl.config.ConfigData;
+import uahb.m1gl.event.KafkaEvent;
 import uahb.m1gl.kafka.avro.model.CustomerCreateRequestAvroModel;
 import uahb.m1gl.kafka.avro.model.CustomerCreateResponseAvroModel;
+import uahb.m1gl.kafka.avro.model.CustomerStatut;
 import uahb.m1gl.mapper.CustomerMapper;
+import uahb.m1gl.model.Customer;
 import uahb.m1gl.service.CustomerImpl;
+import uahb.m1gl.service.ICustomer;
 import uahb.m1gl.service.MessageHelper;
 
 @Component
 @Slf4j
 public class CustomerRequestKafkaListener implements KafkaConsumer<CustomerCreateRequestAvroModel> {
-    private final CustomerImpl customer;
+    private final ICustomer iCustomer;
     private final CustomerMapper customerMapper;
     private final MessageHelper<String, CustomerCreateResponseAvroModel> messageHelper;
     private final ConfigData configData;
-    public CustomerRequestKafkaListener(CustomerImpl customer, CustomerMapper customerMapper, MessageHelper<String, CustomerCreateResponseAvroModel> messageHelper, ConfigData configData) {
-        this.customer = customer;
+
+
+    public CustomerRequestKafkaListener( ICustomer iCustomer, CustomerMapper customerMapper, MessageHelper<String, CustomerCreateResponseAvroModel> messageHelper, ConfigData configData) {
+        this.iCustomer = iCustomer;
         this.customerMapper = customerMapper;
         this.messageHelper = messageHelper;
         this.configData = configData;
@@ -37,4 +43,26 @@ public class CustomerRequestKafkaListener implements KafkaConsumer<CustomerCreat
         log.info("Data {}, key {}, partition {}, offset {}", message, key, partition, offset);
         createCustomer(message);
     }
+
+    private void createCustomer(CustomerCreateRequestAvroModel customerCreateRequestAvroModel) {
+        Customer customer = iCustomer.findByTel(customerCreateRequestAvroModel.getTel());
+        var customerCreateResponseAvroModel = new CustomerCreateResponseAvroModel();
+
+        if(customer == null){
+             var customerToSave = customerMapper.customerCreateRequestAvromModelToCustomer(customerCreateRequestAvroModel);
+             iCustomer.save(customerToSave);
+             customerCreateResponseAvroModel.setClientId(customerToSave.getId()+"");
+             customerCreateResponseAvroModel.setCustomerStatut(CustomerStatut.CREATED);
+             customerCreateResponseAvroModel.setMessage("Client créé !!!");
+        }else {
+            customerCreateResponseAvroModel.setClientId(customer.getId()+"");
+            customerCreateResponseAvroModel.setCustomerStatut(CustomerStatut.EXIST);
+            customerCreateResponseAvroModel.setMessage("Un client avec ce numéro de téléphone existe déjà  !!!");
+        }
+        KafkaEvent<CustomerCreateResponseAvroModel> kafkaEvent = new KafkaEvent<>(customerCreateResponseAvroModel);
+        messageHelper.send(configData.getCompteCreateTopicRequestName(),
+                kafkaEvent.getEventId().toString(),
+                kafkaEvent.getData());
+    }
+
 }

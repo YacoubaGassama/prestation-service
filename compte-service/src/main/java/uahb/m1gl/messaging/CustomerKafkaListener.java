@@ -12,8 +12,10 @@ import uahb.m1gl.dto.CompteCreateRequest;
 import uahb.m1gl.kafka.avro.model.CustomerCreateResponseAvroModel;
 import uahb.m1gl.kafka.avro.model.CustomerStatut;
 import uahb.m1gl.model.Compte;
+import uahb.m1gl.model.Saga;
 import uahb.m1gl.model.Transaction;
 import uahb.m1gl.service.CompteService;
+import uahb.m1gl.service.ISaga;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,17 +25,21 @@ public class CustomerKafkaListener implements KafkaConsumer<CustomerCreateRespon
 
     private CompteCreateRequest compteCreateRequest;
     private final CompteService compteService;
+    private Saga saga;
+    private final ISaga iSaga;
     //private CustomerCreateResponseAvroModel customerCreateResponseAvroModel;
 
-
-    public CustomerKafkaListener(CompteService compteService) {
+    public CustomerKafkaListener(CompteService compteService, ISaga iSaga) {
         this.compteService = compteService;
+        this.iSaga = iSaga;
     }
 
     public void initCompteCreateRequest(CompteCreateRequest compteCreateRequest){
         this.compteCreateRequest = compteCreateRequest;
     }
-
+    public void setDataSaga(Saga saga){
+        this.saga = saga;
+    }
 
     /*
     public CustomerCreateResponseAvroModel getStatut(){
@@ -64,7 +70,18 @@ public class CustomerKafkaListener implements KafkaConsumer<CustomerCreateRespon
             transaction.setMontant(compteCreateRequest.getMontant());
             transaction.setDemandeId(0);
             compte.setTransactions(List.of(transaction));
+
+            saga.setMessage("Compte crée !!!");
+            saga.setStatut("CREATED");
+            saga.setClientId(Long.parseLong(customerCreateResponseAvroModel.getClientId()));
+            saga.setCompte(compte);
+            compte.setSaga(saga);
             compteService.save(compte);
+        }else {
+            saga.setMessage("Compte existant avec ce numero !!!");
+            saga.setStatut("FAIL");
+            saga.setClientId(Long.parseLong(customerCreateResponseAvroModel.getClientId()));
+            iSaga.save(saga);
         }
     }
 }

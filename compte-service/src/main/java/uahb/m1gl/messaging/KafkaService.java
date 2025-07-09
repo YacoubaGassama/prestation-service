@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import uahb.m1gl.config.ConfigData;
 import uahb.m1gl.event.KafkaEvent;
 import uahb.m1gl.kafka.avro.model.CustomerCreateRequestAvroModel;
+import uahb.m1gl.kafka.avro.model.PaiementCreateRequestAvroModel;
 import uahb.m1gl.service.MessageHelper;
 
 @Component
