@@ -18,9 +18,11 @@ import uahb.m1gl.service.CustomerImpl;
 import uahb.m1gl.service.ICustomer;
 import uahb.m1gl.service.MessageHelper;
 
+import java.util.List;
+
 @Component
 @Slf4j
-public class CustomerRequestKafkaListener implements KafkaConsumer<CustomerCreateRequestAvroModel> {
+public class CustomerRequestKafkaListener /*implements KafkaConsumer<CustomerCreateRequestAvroModel*/ {
     private final ICustomer iCustomer;
     private final CustomerMapper customerMapper;
     private final MessageHelper<String, CustomerCreateResponseAvroModel> messageHelper;
@@ -34,14 +36,17 @@ public class CustomerRequestKafkaListener implements KafkaConsumer<CustomerCreat
         this.configData = configData;
     }
 
-    @Override
+    //@Override
     @KafkaListener(id = "${kafka-consumer-config.customer-group-id}", topics = "${topics.customer-create-topic-request-name}")
-    public void receive(@Payload CustomerCreateRequestAvroModel message,
+    public void receive(@Payload List<CustomerCreateRequestAvroModel> messages,
                         @Header(KafkaHeaders.RECEIVED_KEY) String key,
                         @Header(KafkaHeaders.RECEIVED_PARTITION) Integer partition,
                         @Header(KafkaHeaders.OFFSET) Long offset) {
-        log.info("Data {}, key {}, partition {}, offset {}", message, key, partition, offset);
-        createCustomer(message);
+
+        log.info("Data {}, key {}, partition {}, offset {}", messages, key, partition, offset);
+        for (CustomerCreateRequestAvroModel message : messages) {
+            createCustomer(message);
+        }
     }
 
     private void createCustomer(CustomerCreateRequestAvroModel customerCreateRequestAvroModel) {
@@ -60,7 +65,7 @@ public class CustomerRequestKafkaListener implements KafkaConsumer<CustomerCreat
             customerCreateResponseAvroModel.setMessage("Un client avec ce numéro de téléphone existe déjà  !!!");
         }
         KafkaEvent<CustomerCreateResponseAvroModel> kafkaEvent = new KafkaEvent<>(customerCreateResponseAvroModel);
-        messageHelper.send(configData.getCompteCreateTopicRequestName(),
+        messageHelper.send(configData.getCustomerCreateTopicResponseName(),
                 kafkaEvent.getEventId().toString(),
                 kafkaEvent.getData());
     }

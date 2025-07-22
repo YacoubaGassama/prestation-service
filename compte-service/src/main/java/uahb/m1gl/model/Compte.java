@@ -24,7 +24,7 @@ public class Compte {
     private  String numeroCompte;
     @OneToMany(mappedBy = "compte" ,cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REMOVE})
     private List<Transaction> transactions;
-    @OneToOne(cascade = CascadeType.MERGE)
+    @OneToOne
     @JoinColumn(name = "tracking_id")
     private Tracking tracking;
 }

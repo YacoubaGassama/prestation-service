@@ -17,7 +17,7 @@ public class KafkaService {
         this.configData = configData;
     }
     public void createCustomer(KafkaEvent<CustomerCreateRequestAvroModel> kafkaEvent){
-        messageHelper.send(configData.getCompteCreateTopicRequestName(),
+        messageHelper.send(configData.getCustomerCreateTopicRequestName(),
                 kafkaEvent.getEventId().toString(),
                 kafkaEvent.getData());
     }

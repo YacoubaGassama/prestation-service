@@ -60,7 +60,7 @@ public class CompteHelper {
         tracking.setClientId(0);
         tracking.setCompte(null);
         tracking = iTracking.save(tracking);
-        customerResponseKafkaListener.setDataSaga(tracking);
+        customerResponseKafkaListener.setDataTracking(tracking.getTrackingId());
         KafkaEvent<CustomerCreateRequestAvroModel> createCustumerEvent = new KafkaEvent<>(customerCreateRequestAvroModel);
         kafkaService.createCustomer(createCustumerEvent);
         String trackerUrl = ServletUriComponentsBuilder
@@ -112,7 +112,7 @@ public class CompteHelper {
     }
 
 
-    public TrackingResponse trackingResponse(long trackingId) {
+    public TrackingResponse trackingResponse(String trackingId) {
         Tracking tracking = iTracking.findById(trackingId);
         return TrackingResponse.builder()
                 .message(tracking.getMessage())

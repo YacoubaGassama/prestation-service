@@ -13,7 +13,7 @@ public class TrackingService implements ITracking {
     }
 
     @Override
-    public Tracking findById(long id) {
+    public Tracking findById(String id) {
         return trackingRepository.findById(id).orElse(null);
     }
 

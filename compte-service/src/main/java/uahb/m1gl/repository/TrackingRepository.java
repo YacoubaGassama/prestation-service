@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository;
 import uahb.m1gl.model.Tracking;
 
 @Repository
-public interface TrackingRepository extends JpaRepository<Tracking, Long> {
+public interface TrackingRepository extends JpaRepository<Tracking, String> {
 
 }

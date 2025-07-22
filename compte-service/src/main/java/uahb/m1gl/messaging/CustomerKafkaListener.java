@@ -19,13 +19,14 @@ import uahb.m1gl.service.ITracking;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.UUID;
 
 @Component
 public class CustomerKafkaListener implements KafkaConsumer<CustomerCreateResponseAvroModel> {
 
     private CompteCreateRequest compteCreateRequest;
     private final CompteService compteService;
-    private Tracking tracking;
+    private String trackingId;
     private final ITracking iTracking;
     //private CustomerCreateResponseAvroModel customerCreateResponseAvroModel;
 
@@ -37,8 +38,8 @@ public class CustomerKafkaListener implements KafkaConsumer<CustomerCreateRespon
     public void initCompteCreateRequest(CompteCreateRequest compteCreateRequest){
         this.compteCreateRequest = compteCreateRequest;
     }
-    public void setDataSaga(Tracking tracking){
-        this.tracking = tracking;
+    public void setDataTracking(String tracking){
+        this.trackingId = tracking;
     }
 
     /*
@@ -57,6 +58,7 @@ public class CustomerKafkaListener implements KafkaConsumer<CustomerCreateRespon
 
     @Transactional
     public void getData(CustomerCreateResponseAvroModel customerCreateResponseAvroModel){
+        Tracking tracking = iTracking.findById(trackingId);
         if(customerCreateResponseAvroModel.getCustomerStatut().equals(CustomerStatut.CREATED)){
             // créate compte
             Compte compte = new Compte();
@@ -81,7 +83,8 @@ public class CustomerKafkaListener implements KafkaConsumer<CustomerCreateRespon
             tracking.setMessage("Compte existant avec ce numero !!!");
             tracking.setStatut("FAIL");
             tracking.setClientId(Long.parseLong(customerCreateResponseAvroModel.getClientId()));
-            iTracking.save(tracking);
+
         }
+        iTracking.save(tracking);
     }
 }

@@ -39,8 +39,8 @@ public class CompteController {
     public CompteCreateResponse getCompte(@PathVariable long clientId){
         return compteHelper.getCompteByClientId(clientId);
     }
-    @GetMapping("/tracker/{id}")
-    public @ResponseBody TrackingResponse trackingResponse(@PathVariable long trackingId){
+    @GetMapping("/tracker/{trackingId}")
+    public @ResponseBody TrackingResponse trackingResponse(@PathVariable String trackingId){
         return compteHelper.trackingResponse(trackingId);
     }
 }
